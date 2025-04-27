@@ -2,6 +2,9 @@ use cpal::traits::{DeviceTrait, HostTrait};
 use cpal::{BuildStreamError, SampleRate, Stream, StreamConfig};
 use std::sync::{Arc, Mutex};
 
+/// Starts the microphone stream and writes audio data to the provided buffer.
+/// The buffer is shared with the background processing system (e.g., WhisperTranscriber).
+/// This function does not clear the buffer; processed segments are managed elsewhere.
 pub fn get_mic_stream(audio_buffer: Arc<Mutex<Vec<f32>>>) -> Result<Stream, BuildStreamError> {
     let host = cpal::default_host();
 
@@ -150,6 +153,11 @@ fn process_audio_input(data: &[f32], audio_buffer: &Arc<Mutex<Vec<f32>>>) {
 
     // Add data to the buffer
     buffer.extend_from_slice(data);
+
+    // Print first 10 samples for debugging
+    if buffer.len() > 0 {
+        println!("First 10 samples: {:?}", &buffer[..10.min(buffer.len())]);
+    }
 
     // Trim the buffer to keep it at a reasonable size
     let current_len = buffer.len();
